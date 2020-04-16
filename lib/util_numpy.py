@@ -18,7 +18,7 @@
 """Various helper functions for handling arrays, etc. using numpy"""
 
 import struct
-from operator import xor, add as add64, sub as sub64
+
 import numpy as np
 
 words = np.uint64
@@ -45,17 +45,18 @@ zero_words = np.zeros(8, dtype=np.uint64)
 # Build structs for conversion appropriate to this system, favoring
 # native formats if possible for slight performance benefit
 words_format_tpl = "%dQ"
-if struct.pack('2B', 0, 1) == struct.pack('=H', 1): # big endian?
-    words_format_tpl = "<" + words_format_tpl # force little endian
+if struct.pack('2B', 0, 1) == struct.pack('=H', 1):  # big endian?
+    words_format_tpl = "<" + words_format_tpl  # force little endian
 else:
-    try: # is 64-bit integer native?
+    try:  # is 64-bit integer native?
         struct.unpack(words_format_tpl % 2, zero_bytes[:16])
-    except(struct.error): # Use standard instead of native
+    except(struct.error):  # Use standard instead of native
         words_format_tpl = "=" + words_format_tpl
 
 # build structs for one-, two- and eight-word sequences
 words_format = dict(
-    (i,struct.Struct(words_format_tpl % i)) for i in (1,2,8))
+    (i, struct.Struct(words_format_tpl % i)) for i in (1, 2, 8))
+
 
 def bytes2words(data, length=8):
     """Return a list of `length` 64-bit words from `data`.
@@ -64,7 +65,8 @@ def bytes2words(data, length=8):
     `length` must be 1, 2, or 8.
 
     """
-    return(np.fromstring(data, dtype=np.uint64))
+    return (np.fromstring(data, dtype=np.uint64))
+
 
 def words2bytes(data, length=8):
     """Return a `length` * 8 byte string from `data`.
@@ -75,26 +77,29 @@ def words2bytes(data, length=8):
 
     """
     try:
-        return(data.tostring())
+        return (data.tostring())
     except AttributeError:
-        return(np.uint64(data).tostring())
+        return (np.uint64(data).tostring())
+
 
 def RotL_64(x, N):
     """Return `x` rotated left by `N`."""
-    #return (x << np.uint64(N & 63)) | (x >> np.uint64((64-N) & 63))
-    return(np.left_shift(x, (N & 63), dtype=np.uint64) |
-           np.right_shift(x, ((64-N) & 63), dtype=np.uint64))
+    # return (x << np.uint64(N & 63)) | (x >> np.uint64((64-N) & 63))
+    return (np.left_shift(x, (N & 63), dtype=np.uint64) |
+            np.right_shift(x, ((64 - N) & 63), dtype=np.uint64))
+
 
 def RotR_64(x, N):
     """Return `x` rotated right by `N`."""
-    return(np.right_shift(x, (N & 63), dtype=np.uint64) |
-           np.left_shift(x, ((64-N) & 63), dtype=np.uint64))
+    return (np.right_shift(x, (N & 63), dtype=np.uint64) |
+            np.left_shift(x, ((64 - N) & 63), dtype=np.uint64))
 
-def add64(a,b):
+
+def add64(a, b):
     """Return a 64-bit integer sum of `a` and `b`."""
-    return(np.add(a, b, dtype=np.uint64))
+    return (np.add(a, b, dtype=np.uint64))
 
-def sub64(a,b):
+
+def sub64(a, b):
     """Return a 64-bit integer difference of `a` and `b`."""
-    return(np.subtract(a, b, dtype=np.uint64))
-
+    return (np.subtract(a, b, dtype=np.uint64))

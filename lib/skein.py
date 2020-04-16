@@ -20,14 +20,14 @@
 import array
 import binascii
 import os
-import struct
 
 from threefish import (add64, bigint, bytes2words, Threefish512, words,
-                        words2bytes, words_format, xrange,
-                        zero_bytes, zero_words)
+                       words2bytes, words_format, xrange,
+                       zero_bytes, zero_words)
 
 # An empty bytestring that behaves itself whether in Python 2 or 3
 empty_bytes = array.array('B').tostring()
+
 
 class Skein512(object):
     """Skein 512-bit hashing algorithm
@@ -52,9 +52,9 @@ class Skein512(object):
     """
     block_size = 64
     block_bits = 512
-    block_type = {'key':       0,
-                  'nonce':     0x5400000000000000,
-                  'msg':       0x7000000000000000,
+    block_type = {'key': 0,
+                  'nonce': 0x5400000000000000,
+                  'msg': 0x7000000000000000,
                   'cfg_final': 0xc400000000000000,
                   'out_final': 0xff00000000000000}
 
@@ -69,8 +69,8 @@ class Skein512(object):
         self.digest_bits = digest_bits
         self.digest_size = (digest_bits + 7) >> 3
         self._start_new_type('cfg_final')
-        b = words2bytes((0x133414853,digest_bits,0,0,0,0,0,0))
-        self._process_block(b,32)
+        b = words2bytes((0x133414853, digest_bits, 0, 0, 0, 0, 0, 0))
+        self._process_block(b, 32)
         self._start_new_type(block_type)
         if msg:
             self.update(msg)
@@ -91,8 +91,8 @@ class Skein512(object):
 
         """
         block_len = len(block)
-        for i in xrange(0,block_len,64):
-            w = bytes2words(block[i:i+64])
+        for i in xrange(0, block_len, 64):
+            w = bytes2words(block[i:i + 64])
             self.tf.tweak[0] = add64(self.tf.tweak[0], byte_count_add)
             self.tf.prepare_tweak()
             self.tf.prepare_key()
@@ -111,7 +111,7 @@ class Skein512(object):
         self.buf += msg
         buflen = len(self.buf)
         if buflen > 64:
-            end = -(buflen % 64) or (buflen-64)
+            end = -(buflen % 64) or (buflen - 64)
             data = self.buf[0:end]
             self.buf = self.buf[end:]
             try:
@@ -129,9 +129,9 @@ class Skein512(object):
         This function can be called as either ``final`` or ``digest``.
 
         """
-        self.tf.tweak[1] |= bigint(0x8000000000000000) # SKEIN_T1_FLAG_FINAL
+        self.tf.tweak[1] |= bigint(0x8000000000000000)  # SKEIN_T1_FLAG_FINAL
         buflen = len(self.buf)
-        self.buf += zero_bytes[:64-buflen]
+        self.buf += zero_bytes[:64 - buflen]
 
         self._process_block(self.buf, buflen)
 
@@ -140,18 +140,18 @@ class Skein512(object):
         else:
             hash_val = empty_bytes
             self.buf = zero_bytes[:]
-            key = self.tf.key[:] # temporary copy
-            i=0
-            while i*64 < self.digest_size:
+            key = self.tf.key[:]  # temporary copy
+            i = 0
+            while i * 64 < self.digest_size:
                 self.buf = words_format[1].pack(i) + self.buf[8:]
                 self.tf.tweak = [0, self.block_type['out_final']]
                 self._process_block(self.buf, 8)
-                n = self.digest_size - i*64
+                n = self.digest_size - i * 64
                 if n >= 64:
                     n = 64
                 hash_val += words2bytes(self.tf.key)[0:n]
                 self.tf.key = key
-                i+=1
+                i += 1
         return hash_val
 
     digest = final
@@ -159,6 +159,7 @@ class Skein512(object):
     def hexdigest(self):
         """Return a hexadecimal representation of the hashed data"""
         return binascii.b2a_hex(self.digest())
+
 
 class Skein512Random(Skein512):
     """A Skein-based pseudo-random bytestring generator.
@@ -171,13 +172,14 @@ class Skein512Random(Skein512):
     generated periodically.
 
     """
+
     def __init__(self, seed=None, queue_size=512):
         Skein512.__init__(self, block_type='nonce')
         self.queue = []
         self.queue_size = queue_size
         self.tf.key = zero_words[:]
         if not seed:
-          seed = os.urandom(100)
+            seed = os.urandom(100)
         self.reseed(seed)
 
     def reseed(self, seed):
@@ -195,12 +197,13 @@ class Skein512Random(Skein512):
         return output[64:]
 
     def __iter__(self):
-      return self
+        return self
 
     def next(self):
-      if not self.queue:
-        self.queue = array.array('B', self.getbytes(self.queue_size))
-      return self.queue.pop()
+        if not self.queue:
+            self.queue = array.array('B', self.getbytes(self.queue_size))
+        return self.queue.pop()
+
 
 if __name__ == '__main__':
     print Skein512('123').hexdigest()

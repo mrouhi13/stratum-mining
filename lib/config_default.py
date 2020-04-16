@@ -110,7 +110,7 @@ COINDAEMON_TRUSTED_PASSWORD = '***somepassword***'
 # For Reward type there is POW and POS. please ensure you choose the currect ty$
 # For SHA256 PoS Coins which support TX Messages please enter yes in the TX sel$
 COINDAEMON_ALGO = 'riecoin'
-COINDAEMON_Reward = 'POW'
+COINDAEMON_REWARD = 'POW'
 COINDAEMON_SHA256_TX = 'yes'
 
 # ******************** OTHER CORE SETTINGS *********************

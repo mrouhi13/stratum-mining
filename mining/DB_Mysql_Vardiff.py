@@ -1,16 +1,16 @@
 import time
-import hashlib
-import lib.settings as settings
+
 import lib.logger
+
 log = lib.logger.get_logger('DB_Mysql')
 
-import MySQLdb
 import DB_Mysql
-                
+
+
 class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
     def __init__(self):
         DB_Mysql.DB_Mysql.__init__(self)
-    
+
     def import_shares(self, data):
         # Data layout
         # 0: worker_name, 
@@ -29,7 +29,7 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
         checkin_times = {}
         total_shares = 0
         best_diff = 0
-        
+
         for k, v in enumerate(data):
             # for database compatibility we are converting our_worker to Y/N format
             if v[5]:
@@ -48,10 +48,10 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
                   %(lres)s, 'N', %(reason)s, %(solution)s, %(difficulty)s)
                 """,
                 {
-                    "time": v[4], 
-                    "host": v[6], 
-                    "uname": v[0], 
-                    "lres": v[5], 
+                    "time": v[4],
+                    "host": v[6],
+                    "uname": v[0],
+                    "lres": v[5],
                     "reason": v[9],
                     "solution": v[2],
                     "difficulty": v[3]
@@ -59,7 +59,7 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
             )
 
             self.dbh.commit()
-    
+
     def found_block(self, data):
         # for database compatibility we are converting our_worker to Y/N format
         if data[5]:
@@ -94,12 +94,12 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
                 LIMIT 1
                 """,
                 {
-                    "result": data[5], 
+                    "result": data[5],
                     "solution": data[2],
                     "id": shareid[0]
                 }
             )
-            
+
             self.dbh.commit()
         else:
             self.execute(
@@ -113,11 +113,11 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
                   %(lres)s, %(result)s, %(reason)s, %(solution)s)
                 """,
                 {
-                    "time": v[4], 
-                    "host": v[6], 
-                    "uname": v[0], 
-                    "lres": v[5], 
-                    "result": v[5], 
+                    "time": v[4],
+                    "host": v[6],
+                    "uname": v[0],
+                    "lres": v[5],
+                    "result": v[5],
                     "reason": v[9],
                     "solution": v[2]
                 }
@@ -125,10 +125,9 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
 
             self.dbh.commit()
 
-
     def update_worker_diff(self, username, diff):
         log.debug("Setting difficulty for %s to %s", username, diff)
-        
+
         self.execute(
             """
             UPDATE `pool_worker`
@@ -136,25 +135,24 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
             WHERE `username` = %(uname)s
             """,
             {
-                "uname": username, 
+                "uname": username,
                 "diff": diff
             }
         )
-        
+
         self.dbh.commit()
-    
+
     def clear_worker_diff(self):
         log.debug("Resetting difficulty for all workers")
-        
+
         self.execute(
             """
             UPDATE `pool_worker`
             SET `difficulty` = 0
             """
         )
-        
-        self.dbh.commit()
 
+        self.dbh.commit()
 
     def get_workers_stats(self):
         self.execute(
@@ -165,9 +163,9 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
             WHERE `id` > 0
             """
         )
-        
+
         ret = {}
-        
+
         for data in self.dbc.fetchall():
             ret[data[0]] = {
                 "username": data[0],
@@ -179,7 +177,5 @@ class DB_Mysql_Vardiff(DB_Mysql.DB_Mysql):
                 "alive": True if data[6] is 1 else False,
                 "difficulty": float(data[7])
             }
-            
+
         return ret
-
-

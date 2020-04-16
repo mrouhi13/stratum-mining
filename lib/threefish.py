@@ -20,24 +20,25 @@
 The core of the Skein 512-bit hashing algorithm
 
 """
-from util_numpy import add64, bigint, bytelist, bytes2words, imap, izip, sub64, \
-    SKEIN_KS_PARITY, words, words2bytes, words_format, xrange, zero_bytes, zero_words, RotL_64, RotR_64, xor
-
 from itertools import cycle
+
+from util_numpy import add64, bytelist, bytes2words, imap, izip, sub64, \
+    SKEIN_KS_PARITY, words, xrange, zero_words, RotL_64, RotR_64, xor
 
 ROT = bytelist((46, 36, 19, 37,
                 33, 27, 14, 42,
                 17, 49, 36, 39,
-                44,  9, 54, 56,
+                44, 9, 54, 56,
                 39, 30, 34, 24,
                 13, 50, 10, 17,
                 25, 29, 39, 43,
-                 8, 35, 56, 22))
+                8, 35, 56, 22))
 
-PERM = bytelist(((0,1),(2,3),(4,5),(6,7),
-                 (2,1),(4,7),(6,5),(0,3),
-                 (4,1),(6,3),(0,5),(2,7),
-                 (6,1),(0,7),(2,5),(4,3)))
+PERM = bytelist(((0, 1), (2, 3), (4, 5), (6, 7),
+                 (2, 1), (4, 7), (6, 5), (0, 3),
+                 (4, 1), (6, 3), (0, 5), (2, 7),
+                 (6, 1), (0, 7), (2, 5), (4, 3)))
+
 
 class Threefish512(object):
     """The Threefish 512-bit block cipher.
@@ -48,6 +49,7 @@ class Threefish512(object):
     the ``prepare_key`` and ``prepare_tweak`` methods.
 
     """
+
     def __init__(self, key=None, tweak=None):
         """Set key and tweak.
 
@@ -73,16 +75,16 @@ class Threefish512(object):
         try:
             self.key[8] = final
         except IndexError:
-            #self.key.append(final)
+            # self.key.append(final)
             self.key = words(list(self.key) + [final])
 
     def prepare_tweak(self):
         """Compute tweak."""
-        final =  self.tweak[0] ^ self.tweak[1]
+        final = self.tweak[0] ^ self.tweak[1]
         try:
             self.tweak[2] = final
         except IndexError:
-            #self.tweak.append(final)
+            # self.tweak.append(final)
             self.tweak = words(list(self.tweak) + [final])
 
     def encrypt_block(self, plaintext):
@@ -97,16 +99,16 @@ class Threefish512(object):
         state[5] = add64(state[5], tweak[0])
         state[6] = add64(state[6], tweak[1])
 
-        for r,s in izip(xrange(1,19),cycle((0,16))):
+        for r, s in izip(xrange(1, 19), cycle((0, 16))):
             for i in xrange(16):
-                m,n = PERM[i]
+                m, n = PERM[i]
                 state[m] = add64(state[m], state[n])
-                state[n] = RotL_64(state[n], ROT[i+s])
+                state[n] = RotL_64(state[n], ROT[i + s])
                 state[n] = state[n] ^ state[m]
             for y in xrange(8):
-                     state[y] = add64(state[y], key[(r+y) % 9])
+                state[y] = add64(state[y], key[(r + y) % 9])
             state[5] = add64(state[5], tweak[r % 3])
-            state[6] = add64(state[6], tweak[(r+1) % 3])
+            state[6] = add64(state[6], tweak[(r + 1) % 3])
             state[7] = add64(state[7], r)
 
         return state
@@ -129,16 +131,16 @@ class Threefish512(object):
         tweak = self.tweak
         state = ciphertext[:]
 
-        for r,s in izip(xrange(18,0,-1),cycle((16,0))):
+        for r, s in izip(xrange(18, 0, -1), cycle((16, 0))):
             for y in xrange(8):
-                 state[y] = sub64(state[y], key[(r+y) % 9])
+                state[y] = sub64(state[y], key[(r + y) % 9])
             state[5] = sub64(state[5], tweak[r % 3])
-            state[6] = sub64(state[6], tweak[(r+1) % 3])
+            state[6] = sub64(state[6], tweak[(r + 1) % 3])
             state[7] = sub64(state[7], r)
 
-            for i in xrange(15,-1,-1):
-                m,n = PERM[i]
-                state[n] = RotR_64(state[m] ^ state[n], ROT[i+s])
+            for i in xrange(15, -1, -1):
+                m, n = PERM[i]
+                state[n] = RotR_64(state[m] ^ state[n], ROT[i + s])
                 state[m] = sub64(state[m], state[n])
 
         result = list(imap(sub64, state, key))

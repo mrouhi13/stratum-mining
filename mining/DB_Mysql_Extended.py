@@ -1,12 +1,13 @@
 import time
-import hashlib
-import lib.settings as settings
+
 import lib.logger
+import lib.settings as settings
+
 log = lib.logger.get_logger('DB_Mysql')
 
-import MySQLdb
 import DB_Mysql
-                
+
+
 class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
     def __init__(self):
         DB_Mysql.DB_Mysql.__init__(self)
@@ -21,9 +22,9 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
               `alive` = 0
             """
         );
-        
+
         stime = '%.0f' % (time.time() - averageOverTime);
-        
+
         self.execute(
             """
             UPDATE `pool_worker` pw
@@ -43,7 +44,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 "average": int(averageOverTime) * 1000000
             }
         )
-            
+
         self.execute(
             """
             UPDATE `pool`
@@ -55,9 +56,9 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             WHERE `parameter` = 'pool_speed'
             """
         )
-        
+
         self.dbh.commit()
-    
+
     def archive_check(self):
         # Check for found shares to archive
         self.execute(
@@ -69,12 +70,13 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             LIMIT 1
             """
         )
-        
+
         data = self.dbc.fetchone()
-        
-        if data is None or (data[0] + getattr(settings, 'ARCHIVE_DELAY')) > time.time():
+
+        if data is None or (
+                data[0] + getattr(settings, 'ARCHIVE_DELAY')) > time.time():
             return False
-        
+
         return data[0]
 
     def archive_found(self, found_time):
@@ -94,7 +96,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 "time": found_time
             }
         )
-        
+
         self.dbh.commit()
 
     def archive_to_db(self, found_time):
@@ -113,7 +115,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 "time": found_time
             }
         )
-        
+
         self.dbh.commit()
 
     def archive_cleanup(self, found_time):
@@ -126,7 +128,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 "time": found_time
             }
         )
-        
+
         self.dbh.commit()
 
     def archive_get_shares(self, found_time):
@@ -140,7 +142,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 "time": found_time
             }
         )
-        
+
         return self.dbc
 
     def import_shares(self, data):
@@ -161,17 +163,17 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
         checkin_times = {}
         total_shares = 0
         best_diff = 0
-        
+
         for k, v in enumerate(data):
             total_shares += v[3]
-            
+
             if v[0] in checkin_times:
                 if v[4] > checkin_times[v[0]]:
                     checkin_times[v[0]]["time"] = v[4]
             else:
                 checkin_times[v[0]] = {
-                    "time": v[4], 
-                    "shares": 0, 
+                    "time": v[4],
+                    "shares": 0,
                     "rejects": 0
                 }
 
@@ -218,16 +220,16 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
               OR `parameter` = 'round_progress'
             """
         )
-            
+
         current_parameters = {}
-        
+
         for data in self.dbc.fetchall():
             current_parameters[data[0]] = data[1]
-        
+
         round_best_share = int(current_parameters['round_best_share'])
         difficulty = float(current_parameters['bitcoin_difficulty'])
         round_shares = int(current_parameters['round_shares']) + total_shares
-            
+
         updates = [
             {
                 "param": "round_shares",
@@ -235,16 +237,17 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             },
             {
                 "param": "round_progress",
-                "value": 0 if difficulty == 0 else (round_shares / difficulty) * 100
+                "value": 0 if difficulty == 0 else (
+                                                           round_shares / difficulty) * 100
             }
         ]
-            
+
         if best_diff > round_best_share:
             updates.append({
                 "param": "round_best_share",
                 "value": best_diff
             })
-        
+
         self.executemany(
             """
             UPDATE `pool` 
@@ -253,7 +256,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             """,
             updates
         )
-    
+
         for k, v in checkin_times.items():
             self.execute(
                 """
@@ -266,19 +269,18 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 {
                     "time": v["time"],
                     "shares": v["shares"],
-                    "rejects": v["rejects"], 
+                    "rejects": v["rejects"],
                     "uname": k
                 }
             )
-        
-        self.dbh.commit()
 
+        self.dbh.commit()
 
     def found_block(self, data):
         # for database compatibility we are converting our_worker to Y/N format
-        #if data[5]:
+        # if data[5]:
         #    data[5] = 'Y'
-        #else:
+        # else:
         #    data[5] = 'N'
         # Note: difficulty = -1 here
         self.execute(
@@ -293,13 +295,13 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             LIMIT 1
             """,
             {
-                "result": data[5], 
-                "solution": data[2], 
-                "time": data[4], 
+                "result": data[5],
+                "solution": data[2],
+                "time": data[4],
                 "uname": data[0]
             }
         )
-        
+
         if data[5] == True:
             self.execute(
                 """
@@ -319,7 +321,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 """
             )
             total_found = int(self.dbc.fetchone()[0]) + 1
-            
+
             self.executemany(
                 """
                 UPDATE `pool`
@@ -349,9 +351,9 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                     }
                 ]
             )
-            
+
         self.dbh.commit()
-        
+
     def update_pool_info(self, pi):
         self.executemany(
             """
@@ -382,7 +384,7 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 }
             ]
         )
-        
+
         self.dbh.commit()
 
     def get_pool_stats(self):
@@ -391,12 +393,12 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             SELECT * FROM `pool`
             """
         )
-        
+
         ret = {}
-        
+
         for data in self.dbc.fetchall():
             ret[data[0]] = data[1]
-            
+
         return ret
 
     def get_workers_stats(self):
@@ -408,9 +410,9 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
             WHERE `id` > 0
             """
         )
-        
+
         ret = {}
-        
+
         for data in self.dbc.fetchall():
             ret[data[0]] = {
                 "username": data[0],
@@ -422,5 +424,5 @@ class DB_Mysql_Extended(DB_Mysql.DB_Mysql):
                 "alive": True if data[6] is 1 else False,
                 "difficulty": int(data[7])
             }
-            
+
         return ret

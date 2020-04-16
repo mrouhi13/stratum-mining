@@ -12,9 +12,11 @@ You NEED to set the parameters in BASIC SETTINGS
 CENTRAL_WALLET = 'set_valid_addresss_in_config!'                # Local coin address where money goes
 
 COINDAEMON_TRUSTED_HOST = 'localhost'
-COINDAEMON_TRUSTED_PORT = 28332
+COINDAEMON_TRUSTED_PORT = 8332
 COINDAEMON_TRUSTED_USER = 'user'
 COINDAEMON_TRUSTED_PASSWORD = 'somepassword'
+COINDAEMON_HAS_SEGWIT = False
+COINDAEMON_REWARD = 'POW'
 
 # Coin algorithm is the option used to determine the algorithm used by stratum
 # This currently works with POW and POS coins
@@ -22,8 +24,8 @@ COINDAEMON_TRUSTED_PASSWORD = 'somepassword'
 # scrypt, sha256d, scrypt-jane, skeinhash, quark and riecoin
 # If the option does not meet either of these criteria stratum defaults to scrypt
 # For Coins which support TX Messages please enter yes in the TX selection
-COINDAEMON_ALGO = 'riecoin'
-COINDAEMON_TX = 'no'
+COINDAEMON_ALGO = 'sha256d'
+COINDAEMON_TX = False
 
 # ******************** BASIC SETTINGS ***************
 # Backup Coin Daemon address's (consider having at least 1 backup)

@@ -1,7 +1,10 @@
-from time import sleep, time
 import traceback
+from time import sleep, time
+
 import lib.logger
+
 log = lib.logger.get_logger('work_log_pruner')
+
 
 def _WorkLogPruner_I(wl):
     now = time()
@@ -13,6 +16,7 @@ def _WorkLogPruner_I(wl):
                 del userwork[wli]
                 pruned += 1
     log.info('Pruned %d jobs' % (pruned,))
+
 
 def WorkLogPruner(wl):
     while True:

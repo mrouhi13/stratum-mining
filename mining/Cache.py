@@ -1,14 +1,18 @@
 ''' A simple wrapper for pylibmc. It can be overwritten with simple hashing if necessary '''
-import lib.settings as settings
 import lib.logger
+import lib.settings as settings
+
 log = lib.logger.get_logger('Cache')
 
 import pylibmc
-                
+
+
 class Cache():
     def __init__(self):
         # Open a new connection
-        self.mc = pylibmc.Client([settings.MEMCACHE_HOST + ":" + str(settings.MEMCACHE_PORT)], binary=True)
+        self.mc = pylibmc.Client(
+            [settings.MEMCACHE_HOST + ":" + str(settings.MEMCACHE_PORT)],
+            binary=True)
         log.info("Caching initialized")
 
     def set(self, key, value, time=settings.MEMCACHE_TIMEOUT):
