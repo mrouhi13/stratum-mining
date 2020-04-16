@@ -1,6 +1,8 @@
 import binascii
 import struct
 
+from Crypto.Hash import SHA256
+
 import halfnode
 import lib.logger
 import merkletree
