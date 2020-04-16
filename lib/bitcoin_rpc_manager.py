@@ -53,7 +53,7 @@ class BitcoinRPCManager(object):
     def check_height(self):
         while True:
             try:
-                resp = (yield self.conns[self.curr_conn]._call('getnetworkinfo', []))
+                resp = (yield self.conns[self.curr_conn]._call('getblockcount', []))
                 break
             except:
                 log.error("Check Height -- Pool %i Down!" % (self.curr_conn))
@@ -66,7 +66,7 @@ class BitcoinRPCManager(object):
                 continue
 
             try:
-                resp = (yield self.conns[i]._call('getnetworkinfo', []))
+                resp = (yield self.conns[i]._call('getblockcount', []))
             except:
                 log.error("Check Height -- Pool %i Down!" % (i,))
                 continue
