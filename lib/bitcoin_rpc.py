@@ -106,8 +106,8 @@ class BitcoinRPC(object):
             defer.returnValue(False)
 
     @defer.inlineCallbacks
-    def getinfo(self):
-        resp = (yield self._call('getinfo', []))
+    def getnetworkinfo(self):
+        resp = (yield self._call('getnetworkinfo', []))
         defer.returnValue(json.loads(resp)['result'])
 
     @defer.inlineCallbacks
